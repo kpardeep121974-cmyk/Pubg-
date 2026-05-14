@@ -69,3 +69,108 @@ public class SettingsManager : MonoBehaviour
         Debug.Log("Graphics Engine Applied: " + graphicsQuality + " Mode at " + frameRateTarget + " FPS.");
     }
 }
+using UnityEngine;
+using System;
+
+public class SettingsManager : MonoBehaviour
+{
+    // BGMI Graphics Enums
+    public enum GraphicsQuality { Smooth, Balanced, HD, HDR, UltraHD }
+    public enum FrameRate { Low_30FPS, Medium_40FPS, High_60FPS, Extreme_90FPS }
+    public enum SensitivityPreset { Low, Medium, High, Custom }
+
+    [System.Serializable]
+    public class BGMISettings
+    {
+        [Header("Graphics & FPS")]
+        public GraphicsQuality graphics = GraphicsQuality.Smooth;
+        public FrameRate frameRate = FrameRate.High_60FPS;
+        public bool aimAssist = true;
+
+        [Header("Sensitivity Settings")]
+        public SensitivityPreset preset = SensitivityPreset.Medium;
+        public float cameraSensitivity = 100f;  // Free Look (Eye button)
+        public float adsSensitivity = 90f;      // Aim Down Sight (Scope)
+        public float gyroscopeSensitivity = 150f;
+
+        [Header("Audio Settings")]
+        public float masterVolume = 1f;
+        public float sfxVolume = 1f;            // Gunshots & Footsteps
+        public float voiceChatVolume = 0.8f;
+    }
+
+    public BGMISettings currentSettings = new BGMISettings();
+
+    void Start()
+    {
+        LoadSettings();
+        ApplyGraphicsAndFPS();
+    }
+
+    // 1. Settings Apply Karne Ka Function
+    public void ApplyGraphicsAndFPS()
+    {
+        // FPS Set Karna (BGMI ki tarah smooth chalne ke liye)
+        int targetFPS = 60;
+        switch (currentSettings.frameRate)
+        {
+            case FrameRate.Low_30FPS: targetFPS = 30; break;
+            case FrameRate.Medium_40FPS: targetFPS = 40; break;
+            case FrameRate.High_60FPS: targetFPS = 60; break;
+            case FrameRate.Extreme_90FPS: targetFPS = 90; break;
+        }
+        Application.targetFrameRate = targetFPS;
+
+        // Unity Quality Settings (Graphics Level)
+        int qualityLevel = (int)currentSettings.graphics;
+        QualitySettings.SetQualityLevel(qualityLevel, true);
+
+        Debug.Log($"BGMI Settings Applied: Graphics={currentSettings.graphics}, Target FPS={targetFPS}");
+    }
+
+    // 2. Sensitivity Preset Change Karna
+    public void ChangeSensitivityPreset(SensitivityPreset newPreset)
+    {
+        currentSettings.preset = newPreset;
+        if (newPreset == SensitivityPreset.Low)
+        {
+            currentSettings.cameraSensitivity = 60f;
+            currentSettings.adsSensitivity = 50f;
+        }
+        else if (newPreset == SensitivityPreset.Medium)
+        {
+            currentSettings.cameraSensitivity = 100f;
+            currentSettings.adsSensitivity = 90f;
+        }
+        else if (newPreset == SensitivityPreset.High)
+        {
+            currentSettings.cameraSensitivity = 140f;
+            currentSettings.adsSensitivity = 120f;
+        }
+        
+        SaveSettings();
+    }
+
+    // 3. Settings Save Karna (Local Storage mein)
+    public void SaveSettings()
+    {
+        string json = JsonUtility.ToJson(currentSettings);
+        PlayerPrefs.SetString("BGMISettingsData", json);
+        PlayerPrefs.Save();
+    }
+
+    // 4. Settings Load Karna
+    public void LoadSettings()
+    {
+        if (PlayerPrefs.HasKey("BGMISettingsData"))
+        {
+            string json = PlayerPrefs.GetString("BGMISettingsData");
+            currentSettings = JsonUtility.FromJson<BGMISettings>(json);
+        }
+        else
+        {
+            // Default BGMI settings agar pehli baar game khula hai
+            ChangeSensitivityPreset(SensitivityPreset.Medium);
+        }
+    }
+}
