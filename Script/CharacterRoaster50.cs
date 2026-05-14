@@ -96,6 +96,21 @@ public class CharacterRoster50 : MonoBehaviour
         allCharacters.Add(new RosterCharacter {
             id = id, name = name, originGame = "BGMI", rarity = rarity, gemCost = cost,
             ability = new HybridAbility { name = abName, type = abType, description = desc, cooldown = cd }
-        });
+            // EventManager.cs ke andar SpinGoldRush function ka sahi tarika:
+public void SpinGoldRush()
+{
+    int spinCost = 300;
+
+    // Direct EconomyManager ke SpendGold function ko call kiya
+    if (economy.SpendGold(spinCost))
+    {
+        int randomIndex = Random.Range(0, goldRushPrizePool.Count);
+        GoldRushItem wonItem = goldRushPrizePool[randomIndex];
+        Debug.Log("GOLD RUSH REWARD: You won " + wonItem.itemName);
+        
+        if (wonItem.itemName.Contains("Skin"))
+        {
+            inventory.EquipWeaponSkin("AK47", wonItem.itemName);
+        }
     }
 }
