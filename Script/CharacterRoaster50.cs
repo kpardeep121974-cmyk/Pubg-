@@ -3,114 +3,143 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class HybridAbility
+public class AbilityData
 {
-    public string name;
-    public string type; // "Active" (Free Fire style) ya "Passive/Tactical" (BGMI style)
+    public string abilityName;
+    public string type;        // "Active", "Passive", "Tactical", "Pet_Skill"
     public string description;
     public float cooldown;
 }
 
 [System.Serializable]
-public class RosterCharacter
+public class ProfileData
+{
+    public string bio;
+    public string age;
+    public string specialty; // e.g., "Assault", "Medic", "Survival", "Luxury Emotes"
+}
+
+[System.Serializable]
+public class RosterItem
 {
     public int id;
     public string name;
+    public string category;   // "Character" ya "Pet"
     public string originGame; // "Free Fire" ya "BGMI"
     public string rarity;     // "Luxury", "Epic", "Rare"
     public int gemCost;
-    public HybridAbility ability;
+    public int goldCost;
+    public AbilityData ability;
+    public ProfileData profile;
 }
 
 public class CharacterRoster50 : MonoBehaviour
 {
-    public List<RosterCharacter> allCharacters = new List<RosterCharacter>();
+    public List<RosterItem> masterRoster = new List<RosterItem>();
+    public EconomyManager economy;
 
     void Awake()
     {
-        Load50Characters();
+        GenerateMegaRoster();
     }
 
-    void Load50Characters()
+    void GenerateMegaRoster()
     {
         // ==========================================
-        // SECTION 1: FREE FIRE SIDE (26 CHARACTERS)
+        // 1. FREE FIRE CHARACTERS (38 CHARACTERS)
         // ==========================================
-        AddFFChar(1, "Alok", "Luxury", 599, "Drop the Beat", "Active", "Creates 5m aura, increases speed by 15%, heals 5HP/s.", 45f);
-        AddFFChar(2, "Chrono", "Luxury", 599, "Time Turner", "Active", "Creates a force field that blocks 800 damage.", 120f);
-        AddFFChar(3, "Kelly", "Rare", 199, "Dash", "Passive", "Sprinting speed increased by 6%.", 0f);
-        AddFFChar(4, "Hayato", "Epic", 399, "Bushido", "Passive", "With every 10% decrease in max HP, armor penetration increases.", 0f);
-        AddFFChar(5, "Moco", "Rare", 199, "Hacker's Eye", "Passive", "Tags enemies shot for 5 seconds.", 0f);
-        AddFFChar(6, "K", "Luxury", 599, "Master of All", "Active", "Max EP increases by 50. Mode switch: EP regeneration or conversion.", 3f);
-        AddFFChar(7, "Wukong", "Epic", 399, "Camouflage", "Active", "Turns into a bush, reducing speed by 20%.", 200f);
-        AddFFChar(8, "Maxim", "Rare", 199, "Gluttony", "Passive", "Eating mushrooms and using medkits is 25% faster.", 0f);
-        AddFFChar(9, "Andrew", "Rare", 0, "Armor Specialist", "Passive", "Vest durability loss decreased by 12%.", 0f);
-        AddFFChar(10, "Paloma", "Rare", 199, "Arms Dealing", "Passive", "Can carry AR ammo without taking up inventory space.", 0f);
-        AddFFChar(11, "Jota", "Epic", 399, "Sustained Raids", "Passive", "Knocking down enemies restores HP.", 0f);
-        AddFFChar(12, "Steffie", "Epic", 399, "Painted Refuge", "Active", "Creates graffiti that reduces explosive damage by 25%.", 90f);
-        AddFFChar(13, "A124", "Rare", 199, "Thrill of Battle", "Active", "Converts 60 EP into HP quickly.", 10f);
-        AddFFChar(14, "Rafael", "Epic", 399, "Dead Silent", "Passive", "Silencing effect when using Snipers and Marksman Rifles.", 0f);
-        AddFFChar(15, "Laura", "Rare", 199, "Sharp Shooter", "Passive", "Accuracy increases by 35% while scoped in.", 0f);
-        AddFFChar(16, "Clu", "Epic", 399, "Tracing Steps", "Active", "Locates positions of enemies within 75m who are not prone.", 75f);
-        AddFFChar(17, "Luqueta", "Rare", 199, "Hat-Trick", "Passive", "Every kill increases max HP by up to 25.", 0f);
-        AddFFChar(18, "Shirou", "Rare", 199, "Damage Delivered", "Passive", "When hit by enemy, attacker is marked and first shot has armor pen.", 25f);
-        AddFFChar(19, "Skyler", "Luxury", 599, "Riptide Rhythm", "Active", "Unleashes a sonic wave to destroy Gloo Walls.", 60f);
-        AddFFChar(20, "Dasha", "Rare", 199, "Partying On", "Passive", "Reduces damage taken from falls and recovery time.", 0f);
-        AddFFChar(21, "Xayne", "Epic", 399, "Xtreme Encounter", "Active", "Gets 80 temporary HP, increases damage to shields.", 150f);
-        AddFFChar(22, "D-Bee", "Rare", 199, "Bullet Beats", "Passive", "Moving while shooting increases speed and accuracy.", 0f);
-        AddFFChar(23, "Thiva", "Rare", 199, "Vital Vibes", "Passive", "Rescue speed increases by 30%.", 0f);
-        AddFFChar(24, "Dimitri", "Luxury", 599, "Healing Heartbeat", "Active", "Creates a 3.5m healing zone where players can self-recover.", 60f);
-        AddFFChar(25, "Otho", "Rare", 199, "Memory Mist", "Passive", "Form a mist that reveals positions of other enemies after a kill.", 0f);
-        AddFFChar(26, "Adom", "Rare", 0, "Classic Survivor", "Passive", "The ultimate pioneer. Default character with balanced core physical baseline.", 0f);
+        AddCharacter(1, "Alok", "Free Fire", "Luxury", 599, 0, "Drop the Beat", "Active", "Creates 5m aura, increases speed by 15%, heals 5HP/s.", 45f, "World famous DJ.", "28", "Support & Healing");
+        AddCharacter(2, "Chrono", "Free Fire", "Luxury", 599, 0, "Time Turner", "Active", "Creates a force field that blocks 800 damage.", 120f, "Bounty hunter from another dimension.", "35", "Defense");
+        AddCharacter(3, "Kelly", "Free Fire", "Rare", 199, 2000, "Dash", "Passive", "Sprinting speed increased by 6%.", 0f, "High school track star.", "17", "Sprinting");
+        AddCharacter(4, "Hayato", "Free Fire", "Epic", 399, 8000, "Bushido", "Passive", "Armor penetration increases as HP decreases.", 0f, "Samurai family heir.", "20", "Armor Pierce");
+        AddCharacter(5, "Moco", "Free Fire", "Rare", 199, 2000, "Hacker's Eye", "Passive", "Tags enemies shot for 5 seconds.", 0f, "Legendary cyber hacker.", "22", "Intel");
+        AddCharacter(6, "K", "Free Fire", "Luxury", 599, 0, "Master of All", "Active", "Max EP increases by 50. Rapid EP recovery mode.", 3f, "Psychology professor and martial artist.", "32", "EP Conversion");
+        AddCharacter(7, "Wukong", "Free Fire", "Epic", 399, 8000, "Camouflage", "Active", "Turns into a bush, reducing speed by 20%.", 200f, "Mysterious monkey king.", "Unknown", "Stealth");
+        AddCharacter(8, "Maxim", "Free Fire", "Rare", 199, 2000, "Gluttony", "Passive", "Eating mushrooms and using medkits is 25% faster.", 0f, "Speed eating champion.", "17", "Fast Heal");
+        AddCharacter(26, "Adom", "Free Fire", "Rare", 0, 0, "Classic Survivor", "Passive", "The ultimate pioneer survivor.", "Unknown", "Balanced Baseline");
+
+        // Loop to generate remaining FF Characters up to 38
+        for (int i = 9; i <= 38; i++)
+        {
+            if(i == 26) continue;
+            AddCharacter(i, "FF Hero Squad-" + i, "Free Fire", "Epic", 299, 5000, "Survival Core", "Passive", "Slightly reduces recoil of all weapons.", 0f, "Elite special forces operator.", "26", "Assault");
+        }
 
         // ==========================================
-        // SECTION 2: BGMI SIDE (25 CHARACTERS)
+        // 2. BGMI CHARACTERS (37 CHARACTERS) -> TOTAL 75
         // ==========================================
-        AddBgmChar(27, "Victor", "Rare", 0, "Submachine Master", "Tactical", "Reduces SMG reload time by 10% in matches.", 0f);
-        AddBgmChar(28, "Carlo", "Luxury", 599, "Bounty Hunter", "Tactical", "Reduces fall damage by 20%.", 0f);
-        AddBgmChar(29, "Sara", "Epic", 399, "Vehicle Expert", "Tactical", "Reinforces vehicles, reducing damage taken when driving by 10%.", 0f);
-        AddBgmChar(30, "Andy", "Luxury", 599, "Puppet Master", "Tactical", "Increases gun drawing and holstering speed by 15%.", 0f);
-        AddBgmChar(31, "Anna", "Rare", 199, "Investigator", "Tactical", "Slightly decreases sound of own footsteps while crouching.", 0f);
-        AddBgmChar(32, "Sophia", "Epic", 399, "Shield Tech", "Tactical", "Slightly speeds up energy drink consumption.", 0f);
-        AddBgmChar(33, "Riley", "Rare", 199, "Survivalist", "Tactical", "Bandage healing efficiency increased by 5%.", 0f);
-        AddBgmChar(34, "Lorenzo", "Epic", 399, "Iron Wall", "Tactical", "Takes 5% less damage from blue zone outside the safe circle.", 0f);
-        AddBgmChar(35, "Laith", "Luxury", 599, "Assault Specialist", "Tactical", "Slightly reduces AR weapon shake when firing long distance.", 0f);
-        
-        // Custom BGMI-Style Battle Royale Troops for Luxury Vibe
-        for (int i = 36; i <= 51; i++)
+        AddCharacter(39, "Victor", "BGMI", "Rare", 0, 0, "Submachine Master", "Tactical", "Reduces SMG reload time by 10%.", 0f, "Hardcore SMG enthusiast.", "30", "SMG Reload");
+        AddCharacter(40, "Carlo", "BGMI", "Luxury", 599, 0, "Bounty Hunter", "Tactical", "Reduces fall damage by 20%.", 0f, "Highly skilled professional assassin.", "28", "Survival");
+        AddCharacter(41, "Sara", "BGMI", "Epic", 399, 6000, "Vehicle Expert", "Tactical", "Reinforces vehicles, reducing damage taken by 10%.", 0f, "Talented mechanic and driver.", "23", "Driving");
+        AddCharacter(42, "Andy", "BGMI", "Luxury", 599, 0, "Puppet Master", "Tactical", "Increases gun drawing and holstering speed by 15%.", 0f, "Ex-puppeteer turned marksman.", "35", "Fast Draw");
+
+        for (int i = 43; i <= 75; i++)
         {
-            AddBgmChar(i, "Tactical Soldier Squad-" + (i-35), "Epic", 299, "Squad Tactics", "Passive", "Increases reload speed of all squad weapons by 2%.", 0f);
+            AddCharacter(i, "Tactical Commando-" + i, "BGMI", "Epic", 299, 5000, "Squad Tactics", "Tactical", "Increases crawl speed when knocked down by 15%.", 0f, "Frontline specialized infantry.", "29", "Tactical");
+        }
+
+        // ==========================================
+        // 3. FREE FIRE PETS (25 PETS)
+        // ==========================================
+        AddPet(101, "Detective Panda", "Free Fire", "Epic", 299, 5000, "Panda's Blessings", "Restores 10 HP upon every elimination.", "A cute panda with detective instincts.");
+        AddPet(102, "Falco", "Free Fire", "Luxury", 499, 10000, "Skyline Spree", "Increases diving and gliding speed by 45%.", "Majestic eagle ruling the skies.");
+        AddPet(103, "Robo", "Free Fire", "Epic", 299, 5000, "Iron Wall", "Adds a reinforcement shield to covers (+100 HP).", "Futuristic smart helper robot.");
+        AddPet(104, "Ottero", "Free Fire", "Rare", 199, 3000, "Double Blubber", "Recover EP equal to 65% of HP restored from Medkits.", "Music loving adorable otter.");
+        AddPet(105, "Mr. Waggor", "Free Fire", "Luxury", 499, 12000, "Smooth Gloo", "Generates utility items over time if inventory is empty.", "Dapper penguin with tactical gear.");
+
+        for (int i = 106; i <= 125; i++)
+        {
+            AddPet(i, "FF Companion-" + i, "Free Fire", "Rare", 199, 3000, "Scout Aura", "Increases mushroom detection range by 5 meters.", "Wild trained wilderness companion.");
+        }
+
+        // ==========================================
+        // 4. BGMI PETS / COMPANIONS (25 PETS) -> TOTAL 50
+        // ==========================================
+        AddPet(126, "The Falcon", "BGMI", "Luxury", 599, 15000, "Apex Emote", "Perches on shoulder. Triggers victory flight animation.", "The legendary premium BGMI avian companion.");
+        AddPet(127, "Shiba", "BGMI", "Epic", 399, 7000, "Celebration Dance", "Triggers exclusive cute MVP celebration dance emotes.", "Loyal puppy with unmatched style.");
+        AddPet(128, "Corgi", "BGMI", "Rare", 199, 4000, "Lobby Stroll", "Performs stylish walking and resting loops in main lobby.", "Fluffy short-legged royalty pup.");
+        AddPet(129, "Snow Wolf", "BGMI", "Luxury", 599, 15000, "Alpha Howl", "Unlocks specialized arctic themes on match victory screens.", "Majestic winter beast.");
+
+        for (int i = 130; i <= 150; i++)
+        {
+            AddPet(i, "Tactical Buddy-" + i, "BGMI", "Rare", 199, 4000, "Alert Look", "Performs a growling alert animation when squad is nearby.", "Domestic trained tactical support pet.");
         }
     }
 
-    void AddFFChar(int id, string name, string rarity, int cost, string abName, string abType, string desc, float cd)
+    void AddCharacter(int id, string name, string origin, string rarity, int gems, int gold, string abName, string abType, string desc, float cd, string bio, string age, string spec)
     {
-        allCharacters.Add(new RosterCharacter {
-            id = id, name = name, originGame = "Free Fire", rarity = rarity, gemCost = cost,
-            ability = new HybridAbility { name = abName, type = abType, description = desc, cooldown = cd }
+        masterRoster.Add(new RosterItem {
+            id = id, name = name, category = "Character", originGame = origin, rarity = rarity, gemCost = gems, goldCost = gold,
+            ability = new AbilityData { abilityName = abName, type = abType, description = desc, cooldown = cd },
+            profile = new ProfileData { bio = bio, age = age, specialty = spec }
         });
     }
 
-    void AddBgmChar(int id, string name, string rarity, int cost, string abName, string abType, string desc, float cd)
+    void AddPet(int id, string name, string origin, string rarity, int gems, int gold, string abName, string desc, string bio)
     {
-        allCharacters.Add(new RosterCharacter {
-            id = id, name = name, originGame = "BGMI", rarity = rarity, gemCost = cost,
-            ability = new HybridAbility { name = abName, type = abType, description = desc, cooldown = cd }
-            // EventManager.cs ke andar SpinGoldRush function ka sahi tarika:
-public void SpinGoldRush()
-{
-    int spinCost = 300;
+        masterRoster.Add(new RosterItem {
+            id = id, name = name, category = "Pet", originGame = origin, rarity = rarity, gemCost = gems, goldCost = gold,
+            ability = new AbilityData { abilityName = abName, type = "Pet_Skill", description = desc, cooldown = 0f },
+            profile = new ProfileData { bio = bio, age = "Unknown", specialty = "Companion Mechanics" }
+        });
+    }
 
-    // Direct EconomyManager ke SpendGold function ko call kiya
-    if (economy.SpendGold(spinCost))
+    public void PurchaseItem(int id, bool useGems)
     {
-        int randomIndex = Random.Range(0, goldRushPrizePool.Count);
-        GoldRushItem wonItem = goldRushPrizePool[randomIndex];
-        Debug.Log("GOLD RUSH REWARD: You won " + wonItem.itemName);
-        
-        if (wonItem.itemName.Contains("Skin"))
+        foreach (var item in masterRoster)
         {
-            inventory.EquipWeaponSkin("AK47", wonItem.itemName);
+            if (item.id == id)
+            {
+                if (useGems && economy.PurchaseItem(item.gemCost, true))
+                {
+                    Debug.Log("Unlocked: " + item.name + " via Gems!");
+                }
+                else if (!useGems && economy.SpendGold(item.goldCost))
+                {
+                    Debug.Log("Unlocked: " + item.name + " via Gold!");
+                }
+                return;
+            }
         }
     }
 }
