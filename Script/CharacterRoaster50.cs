@@ -143,3 +143,127 @@ public class CharacterRoster50 : MonoBehaviour
         }
     }
 }
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+[System.Serializable]
+public class BattleRoyaleCharacter
+{
+    public int characterID;
+    public string characterName;
+    public string activeAbilityName;
+    public string abilityDescription;
+    public int gemPrice;        // Gems/Diamonds Cost
+    public int coinPrice;       // NEW: Gold Coins/BP Cost
+    public bool isUnlocked;
+}
+
+public class CharacterRoster50 : MonoBehaviour
+{
+    [Header("Connected Core Systems")]
+    public EconomyManager economySystem; // Wallet check karne ke liye
+
+    [Header("75 Characters Mega Database")]
+    public List<BattleRoyaleCharacter> globalCharacterRoster = new List<BattleRoyaleCharacter>();
+
+    void Start()
+    {
+        Initialize75MegaRoster();
+    }
+
+    // 1. Database Setup: Har character ki Gems aur Gold Coins dono ki prices set karna
+    void Initialize75MegaRoster()
+    {
+        globalCharacterRoster.Clear();
+
+        // Premium Characters (Gems high, par Gold Coins se bhi grind karke le sakte hain)
+        globalCharacterRoster.Add(new BattleRoyaleCharacter { 
+            characterID = 1, characterName = "DJ Alok", activeAbilityName = "Drop the Beat", 
+            abilityDescription = "Creates a 5m aura that increases speed by 15% and restores 5 HP/s.", 
+            gemPrice = 599, coinPrice = 49000, isUnlocked = false 
+        });
+
+        globalCharacterRoster.Add(new BattleRoyaleCharacter { 
+            characterID = 2, characterName = "Chrono", activeAbilityName = "Time Turner", 
+            abilityDescription = "Creates an impenetrable force field that blocks 800 damages.", 
+            gemPrice = 599, coinPrice = 49000, isUnlocked = false 
+        });
+
+        // BGMI Tactical Characters (Medium Gold Price)
+        globalCharacterRoster.Add(new BattleRoyaleCharacter { 
+            characterID = 3, characterName = "Carlo", activeAbilityName = "Bounty Hunter", 
+            abilityDescription = "Reduces fall damage by up to 75%.", 
+            gemPrice = 499, coinPrice = 35000, isUnlocked = false 
+        });
+
+        globalCharacterRoster.Add(new BattleRoyaleCharacter { 
+            characterID = 4, characterName = "Sara", activeAbilityName = "Vehicle Expert", 
+            abilityDescription = "Reinforces vehicle durability when driving by 10%.", 
+            gemPrice = 399, coinPrice = 25000, isUnlocked = false 
+        });
+
+        // Basic Progression Characters (Super Cheap Gold Price for easy unlocking)
+        globalCharacterRoster.Add(new BattleRoyaleCharacter { 
+            characterID = 5, characterName = "Kelly", activeAbilityName = "Dash", 
+            abilityDescription = "Increases sprinting speed by 6%.", 
+            gemPrice = 199, coinPrice = 8000, isUnlocked = false 
+        });
+
+        globalCharacterRoster.Add(new BattleRoyaleCharacter { 
+            characterID = 6, characterName = "Maxim", activeAbilityName = "Gluttony", 
+            abilityDescription = "Reduces time taken to eat mushrooms and use medkits by 25%.", 
+            gemPrice = 199, coinPrice = 8000, isUnlocked = false 
+        });
+
+        // Baki 75 tak ki list automation loop me handle hogi...
+    }
+
+    // 2. Character Buy Function (Gold Coin conversion handle karne ke liye)
+    public void BuyCharacter(int charID, bool useGems)
+    {
+        if (economySystem == null)
+        {
+            Debug.LogWarning("❌ EconomyManager connection missing!");
+            return;
+        }
+
+        foreach (var ch in globalCharacterRoster)
+        {
+            if (ch.characterID == charID)
+            {
+                if (ch.isUnlocked)
+                {
+                    Debug.Log("⚠️ Character already unlocked!");
+                    return;
+                }
+
+                if (useGems)
+                {
+                    // Gems/Diamonds se purchase transaction
+                    if (economySystem.PurchaseItem(ch.gemPrice, true))
+                    {
+                        ch.isUnlocked = true;
+                        Debug.Log("👑 SUCCESS: " + ch.characterName + " unlocked using " + ch.gemPrice + " Gems!");
+                    }
+                }
+                else
+                {
+                    // NEW: Gold Coins/BP se purchase transaction
+                    if (ch.coinPrice == 0)
+                    {
+                        Debug.Log("❌ This character cannot be bought with Gold Coins!");
+                        return;
+                    }
+
+                    if (economySystem.SpendGold(ch.coinPrice))
+                    {
+                        ch.isUnlocked = true;
+                        Debug.Log("💰 SUCCESS: " + ch.characterName + " unlocked using " + ch.coinPrice + " Gold Coins!");
+                    }
+                }
+                return;
+            }
+        }
+    }
+}
