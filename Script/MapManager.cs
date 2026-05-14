@@ -137,5 +137,90 @@ public class RoomManager : MonoBehaviour
             }
         }
         Debug.Log("Invalid Room ID or Password!");
+    
+using System.Collections.Generic;
+using UnityEngine;
+
+[System.Serializable]
+public class GameMap
+{
+    public string mapName;
+    public string mapSize;          // e.g., "8x8 km", "2x2 km"
+    public bool isDownloaded;
+    public string mapType;          // "Classic", "TDM", "Training"
+}
+
+public class MapManager : MonoBehaviour
+{
+    [Header("Available Maps Database")]
+    public List<GameMap> availableMaps = new List<GameMap>();
+    public GameMap currentlySelectedMap;
+
+    void Start()
+    {
+        InitializeMaps();
+    }
+
+    // 1. BGMI Maps with Training Ground Option
+    void InitializeMaps()
+    {
+        availableMaps.Clear();
+
+        // Classic Battle Royale Maps
+        availableMaps.Add(new GameMap { mapName = "Erangel", mapSize = "8x8 km", isDownloaded = true, mapType = "Classic" });
+        availableMaps.Add(new GameMap { mapName = "Sanhok", mapSize = "4x4 km", isDownloaded = true, mapType = "Classic" });
+        availableMaps.Add(new GameMap { mapName = "Livik", mapSize = "2x2 km", isDownloaded = true, mapType = "Classic" });
+
+        // TDM Maps
+        availableMaps.Add(new GameMap { mapName = "Inventory (TDM)", mapSize = "Small", isDownloaded = true, mapType = "TDM" });
+
+        // NEW: BGMI Style Training Ground / Cheer Park
+        availableMaps.Add(new GameMap { 
+            mapName = "BGMI Training Ground", 
+            mapSize = "1x1 km", 
+            isDownloaded = true, 
+            mapType = "Training" 
+        });
+
+        // Default selection setup
+        currentlySelectedMap = availableMaps[0]; // Default: Erangel
+    }
+
+    // 2. Map Select Karne Ka Logic
+    public void SelectMap(string targetMapName)
+    {
+        foreach (var map in availableMaps)
+        {
+            if (map.mapName == targetMapName)
+            {
+                if (!map.isDownloaded)
+                {
+                    Debug.Log("❌ Cannot select " + targetMapName + ". Map download required!");
+                    return;
+                }
+
+                currentlySelectedMap = map;
+                Debug.Log("🗺️ Map Selected: " + map.mapName + " [" + map.mapType + " Mode]");
+                return;
+            }
+        }
+    }
+
+    // 3. UI Start Button Click Par Zone/Map Load Karne Ka Logic
+    public void LoadSelectedMapScene()
+    {
+        Debug.Log("=========================================");
+        Debug.Log("🚀 LOADING SCENE: " + currentlySelectedMap.mapName);
+        
+        if (currentlySelectedMap.mapType == "Training")
+        {
+            Debug.Log("🎯 Entering Training Mode: Infinite Ammo and Target Dummies spawned.");
+            // Yahan infinite ammo aur safe health variables trigger honge
+        }
+        else
+        {
+            Debug.Log("🪂 Entering Matchmaking Arena: Total 100 Players Grid Initialized.");
+        }
+        Debug.Log("=========================================");
     }
 }
