@@ -30,7 +30,7 @@ public class InventoryStoreManager : MonoBehaviour
     // 1. Store ke saare products register karna (BGMI + FF Mix Items)
     void InitializeShopProducts()
     {
-        // Custom Room Cards (Most Important for CustomRoomManager)
+        // Custom Room Cards (For CustomRoomManager)
         shopItemsList.Add(new StoreItem { itemID = 501, itemName = "1-Day Custom Room Card", itemCategory = "RoomCard", gemCost = 100, coinCost = 0, description = "Unlocks unlimited custom rooms for 24 hours." });
         shopItemsList.Add(new StoreItem { itemID = 502, itemName = "7-Day Custom Room Card", itemCategory = "RoomCard", gemCost = 500, coinCost = 0, description = "Unlocks unlimited custom rooms for 7 days." });
 
@@ -93,11 +93,10 @@ public class InventoryStoreManager : MonoBehaviour
             currentFood++;
             PlayerPrefs.SetInt("PetFoodCount", currentFood);
             PlayerPrefs.Save();
-            Debug.Log("🍖 Pet Food added. Ready to feed your companions.");
+            Debug.Log("CN🍖 Pet Food added. Ready to feed your companions.");
         }
         else if (item.itemCategory == "WeaponCrate" && weaponSkinSystem != null)
         {
-            // Loot crate open karne ka simulation
             Debug.Log("📦 Opening weapon crate... Syncing skin rewards with database.");
             weaponSkinSystem.UnlockNewSkin(item.itemName);
         }
