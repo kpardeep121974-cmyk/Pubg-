@@ -86,3 +86,13 @@ public class HealthSystem : MonoBehaviour
         // Game Over ya Knockdown logic yahan aayega
     }
 }
+// Inside your TakeDamage/ApplyDamage method:
+currentHealth -= damageAmount;
+
+// Add this part to update the screen automatically:
+InGameHUDManager hud = GameServiceLocator.Instance?.GetService<InGameHUDManager>();
+if (hud != null)
+{
+    // Assuming this script runs on the local player
+    hud.UpdateHealth(currentHealth, maxHealth);
+}
