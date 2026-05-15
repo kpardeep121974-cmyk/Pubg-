@@ -116,3 +116,13 @@ public class ServerAuthoritativeShooting : MonoBehaviour
 
     private void PlayLocalMuzzleFlash() { /* VFX Logic */ }
 }
+// पुराना तरीका: 
+// Instantiate(bloodEffectPrefab, hit.point, Quaternion.identity);
+
+// नया ऑप्टिमाइज्ड तरीका (Object Pooling):
+ObjectPooler pooler = GameServiceLocator.Instance?.GetService<ObjectPooler>();
+if (pooler != null)
+{
+    // "BloodVFX" नाम का पूल ऑब्जेक्ट को एक्टिवेट कर देगा बिना लैग के
+    pooler.SpawnFromPool("BloodVFX", hit.point, Quaternion.identity);
+}
