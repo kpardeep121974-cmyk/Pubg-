@@ -159,3 +159,114 @@ public class HealthSystem : MonoBehaviour
 
     private void Die() { /* Spectator activation logic */ }
 }
+using System.Collections;
+using UnityEngine;
+
+public class HealthSystem : MonoBehaviour
+{
+    [Header("Health Settings")]
+    public float maxHealth = 100f;
+    public float currentHealth;
+    
+    [Header("Status Flags")]
+    public bool isKnockedOut = false;
+    public bool isDead = false;
+
+    [Header("Knockout Settings")]
+    public float bleedDamagePerSecond = 2f; // नॉक होने के बाद हर सेकंड कितनी हेल्थ गिरेगी
+    private Coroutine bleedCoroutine;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+    }
+
+    // सर्वर या डैमेज सोर्स से इसे कॉल किया जाएगा
+    public void TakeDamage(float damageAmount)
+    {
+        if (isDead) return;
+
+        currentHealth -= damageAmount;
+        
+        // HUD UI अपडेट करें
+        HUDManager hud = GameServiceLocator.Instance?.GetService<HUDManager>();
+        if (hud != null) hud.UpdateHealthBar(currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            if (!isKnockedOut && CheckIfTeammatesAlive())
+            {
+                EnterKnockoutState();
+            }
+            else if (isKnockedOut || !CheckIfTeammatesAlive())
+            {
+                Die();
+            }
+        }
+    }
+
+    void EnterKnockoutState()
+    {
+        isKnockedOut = true;
+        currentHealth = maxHealth; // नॉकआउट के लिए हेल्थ बार को रीसेट करें (ब्लीड टाइमर की तरह काम करेगा)
+        Debug.Log($"{gameObject.name} नॉक हो गया है!");
+
+        // प्लेयर की मूवमेंट स्पीड धीमी करें और शूटिंग बंद करें
+        GetComponent<PlayerMovement>().SetKnockedSpeed(true);
+        GetComponent<WeaponShooting>().SetCanShoot(false);
+
+        // धीरे-धीरे खून बहने (Health Bleed) का लूप शुरू करें
+        bleedCoroutine = StartCoroutine(BleedDownRoutine());
+    }
+
+    IEnumerator BleedDownRoutine()
+    {
+        while (currentHealth > 0 && isKnockedOut)
+        {
+            yield return new WaitForSeconds(1f);
+            currentHealth -= bleedDamagePerSecond;
+            
+            if (GameServiceLocator.Instance?.GetService<HUDManager>() != null)
+                GameServiceLocator.Instance.GetService<HUDManager>().UpdateHealthBar(currentHealth);
+        }
+
+        // अगर ब्लीडिंग से हेल्थ 0 हो गई तो मौत
+        if (isKnockedOut) Die();
+    }
+
+    // टीममेट इस मेथड को कॉल करेगा रिवाइव करने के लिए
+    public void RevivePlayer()
+    {
+        if (!isKnockedOut || isDead) return;
+
+        if (bleedCoroutine != null) StopCoroutine(bleedCoroutine);
+
+        isKnockedOut = false;
+        currentHealth = 30f; // रिवाइव होने पर सिर्फ 30% हेल्थ मिलेगी (जैसे PUBG में होता है)
+        
+        // प्लेयर की मूवमेंट और शूटिंग वापस नॉर्मल करें
+        GetComponent<PlayerMovement>().SetKnockedSpeed(false);
+        GetComponent<WeaponShooting>().SetCanShoot(true);
+
+        Debug.Log($"{gameObject.name} को रिवाइव कर दिया गया है।");
+    }
+
+    void Die()
+    {
+        isDead = true;
+        isKnockedOut = false;
+        if (bleedCoroutine != null) StopCoroutine(bleedCoroutine);
+
+        Debug.Log($"{gameObject.name} पूरी तरह एलिमिनेट हो गया।");
+        
+        // स्पेक्टेटर मोड एक्टिवेट करें (जो हमने पहले बनाया था)
+        gameObject.SetActive(false);
+    }
+
+    bool CheckIfTeammatesAlive()
+    {
+        // यहाँ चेक करें कि आपकी टीम में कोई और ज़िंदा है या नहीं
+        // अगर आप सोलो खेल रहे हैं, तो यह सीधे False रिटर्न करेगा (यानी सीधे डेथ होगी)
+        return true; 
+    }
+}
