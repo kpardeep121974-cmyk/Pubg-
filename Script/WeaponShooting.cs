@@ -66,3 +66,53 @@ public class WeaponShooting : MonoBehaviour
         }
     }
 }
+using UnityEngine;
+
+public class ServerAuthoritativeShooting : MonoBehaviour
+{
+    public Transform cameraTransform;
+    public float weaponRange = 200f;
+    public float weaponDamage = 35f;
+
+    // 1. Called on the Client when they press the left mouse button
+    public void TryToFireWeapon()
+    {
+        // Play local muzzle flash and sound instantly for responsive game feel (Client Prediction)
+        PlayLocalMuzzleFlash();
+
+        // Send a request to the server with the camera's position and direction
+        Vector3 shootOrigin = cameraTransform.position;
+        Vector3 shootDirection = cameraTransform.forward;
+
+        // NOTE: If using Photon/Mirror/Netcode, replace this with your framework's actual RPC attribute
+        // e.g., [ServerRpc] or [Command]
+        SendShootRequestToServer(shootOrigin, shootDirection);
+    }
+
+    // 2. This method executes ONLY on the secure Server Host
+    private void SendShootRequestToServer(Vector3 origin, Vector3 direction)
+    {
+        RaycastHit hit;
+        
+        // The server performs the actual raycast physics calculation
+        if (Physics.Raycast(origin, direction, out hit, weaponRange))
+        {
+            // Verify if we hit a valid player target
+            HealthSystem enemyHealth = hit.collider.GetComponent<HealthSystem>();
+            
+            if (enemyHealth != null)
+            {
+                // Server calculates distance to prevent "silent aim/teleport hacks"
+                float distance = Vector3.Distance(origin, hit.point);
+                if (distance <= weaponRange)
+                {
+                    // Securely deduct health on the server version of the enemy
+                    enemyHealth.TakeDamageFromServer(weaponDamage);
+                    Debug.Log($"Server verified hit! Inflicted {weaponDamage} damage.");
+                }
+            }
+        }
+    }
+
+    private void PlayLocalMuzzleFlash() { /* VFX Logic */ }
+}
