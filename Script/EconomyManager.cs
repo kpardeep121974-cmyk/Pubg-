@@ -82,6 +82,5 @@ public class EconomyManager : MonoBehaviour
         }
         return false;
     }
-}
-EconomyManager economy = GameServiceLocator.Instance.GetService<EconomyManager>();
+    EconomyManager economy = GameServiceLocator.Instance.GetService<EconomyManager>();
 // Do your logic with economy here
