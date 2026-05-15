@@ -96,3 +96,26 @@ if (hud != null)
     // Assuming this script runs on the local player
     hud.UpdateHealth(currentHealth, maxHealth);
 }
+// HealthSystem.cs के अंदर जहां प्लेयर मरता है:
+void Die()
+{
+    Debug.Log("प्लेयर मारा गया!");
+
+    // 1. लोकल प्लेयर का कैमरा और मूवमेंट स्क्रिप्ट्स डिसेबल करें
+    GetComponent<PlayerMovement>().enabled = false;
+    
+    // 2. मैच में बचे हुए टीममेट्स की लिस्ट बनाएं (यह डेटा आपके Matchmaking/Room मैनेजर से आ सकता है)
+    List<Transform> aliveTeammates = new List<Transform>();
+    
+    // (मान लेते हैं कि आपके पास जिंदा साथियों की लिस्ट ढूंढने का लॉजिक है)
+
+    // 3. SpectatorManager को कॉल करें
+    SpectatorManager spectator = GameServiceLocator.Instance?.GetService<SpectatorManager>();
+    if (spectator != null)
+    {
+        spectator.StartSpectating(aliveTeammates);
+    }
+
+    // 4. अंत में इस मरे हुए प्लेयर के कैरेक्टर मॉडल को हाइड या डिस्ट्रॉय करें
+    gameObject.SetActive(false);
+}
