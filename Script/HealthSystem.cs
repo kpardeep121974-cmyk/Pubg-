@@ -119,3 +119,43 @@ void Die()
     // 4. अंत में इस मरे हुए प्लेयर के कैरेक्टर मॉडल को हाइड या डिस्ट्रॉय करें
     gameObject.SetActive(false);
 }
+// Inside your updated HealthSystem.cs
+public class HealthSystem : MonoBehaviour
+{
+    public float maxHealth = 100f;
+    private float currentHealth;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+    }
+
+    // CRITICAL: Only allow the server to call this method
+    public void TakeDamageFromServer(float amount)
+    {
+        // 1. Deduct health securely on the server instance
+        currentHealth -= amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+
+        // 2. Sync this new health value back down to all player clients (State Synchronization)
+        SyncHealthToClients(currentHealth);
+
+        if (currentHealth <= 0)
+            {
+            // Trigger the Spectator mode we built in Phase 5
+            Die();
+        }
+    }
+
+    private void SyncHealthToClients(float newHealth)
+    {
+        // Use your Networking Framework (Netcode, Photon, Mirror) to update the client's HUD
+        HUDManager hud = GameServiceLocator.Instance?.GetService<HUDManager>();
+        if (hud != null)
+        {
+            hud.UpdateHealthBar(newHealth); // Updates slider smoothly across network
+        }
+    }
+
+    private void Die() { /* Spectator activation logic */ }
+}
